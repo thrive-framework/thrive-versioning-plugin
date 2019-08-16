@@ -38,4 +38,12 @@ class Capabilities {
     void websocket(String... endpoints){
         websocketsEndpoints.addAll(endpoints)
     }
+
+    Map<String, String> asMap(){
+        [
+            api: hasApi.get(),
+            swagger: hasSwagger.get(),
+            websocket: websocketsEndpoints.get().join(",")
+        ]
+    }
 }

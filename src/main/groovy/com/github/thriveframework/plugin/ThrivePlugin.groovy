@@ -2,6 +2,7 @@ package com.github.thriveframework.plugin
 
 import com.github.thriveframework.plugin.extension.ThriveExtension
 import com.github.thriveframework.plugin.task.EchoTask
+import com.github.thriveframework.plugin.task.WriteCapabilitiesTask
 import com.gorylenko.GitPropertiesPlugin
 import groovy.util.logging.Slf4j
 import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
@@ -15,6 +16,8 @@ import org.unbrokendome.gradle.plugins.gitversion.GitVersionPlugin
 
 import java.time.LocalDateTime
 import java.time.ZoneId
+
+import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @Slf4j
 class ThrivePlugin implements Plugin<Project> {
@@ -67,7 +70,7 @@ class ThrivePlugin implements Plugin<Project> {
 
     private void applyPluginIfNeeded(Project project, Class plugin){
         String pluginClassName = plugin.canonicalName
-        log.info("Trying to apply plugin with implementation $pluginClassName")
+        log.info("Trying to apply plugin with implementation $pluginClassName to project ${fullName(project)}")
         if (!project.plugins.findPlugin(plugin)) {
             log.info("Applying $pluginClassName")
             project.apply plugin: plugin
@@ -77,7 +80,7 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureExtensions(Project project){
-        log.info("Creating Thrive extenion")
+        log.info("Creating Thrive extenion in project ${fullName(project)}")
         this.extension = project.extensions.create("thrive", ThriveExtension, project)
     }
 
@@ -143,13 +146,13 @@ class ThrivePlugin implements Plugin<Project> {
 
             project.version = project.gitVersion.determineVersion()
 
-            log.info "Project \"${project.name}\" version: ${project.version}"
-            log.info "Project \"${project.name}\" state:   ${project.projectState}"
+            log.info "Project \"${fullName(project)}\" version: ${project.version}"
+            log.info "Project \"${fullName(project)}\" state:   ${project.projectState}"
         }
     }
 
     private void configureRepositories(Project project){
-        log.info("Adding Maven Central, JFrog (snapshot and release), Spring milestone and JitPack repositories")
+        log.info("Adding Maven Central, JFrog (snapshot and release), Spring milestone and JitPack repositories to project ${fullName(project)}")
         project.repositories {
             mavenCentral()
             //todo jcenter?
@@ -166,7 +169,7 @@ class ThrivePlugin implements Plugin<Project> {
 
     private void configureSpringBoot(Project project){
         if (extension.isRunnableProject.get()) {
-            log.info "Configuring project ${project.name} as runnable service"
+            log.info "Configuring project ${fullName(project)} as runnable service"
             applyPluginIfNeeded(project, SpringBootPlugin)
 
             //fixme main class for booJar needs to ne given explicitly;
@@ -199,7 +202,7 @@ class ThrivePlugin implements Plugin<Project> {
                 systemProperty "spring.profiles.active", "local"
             }
         } else {
-            log.info("Configuring project ${project.name} as a library")
+            log.info("Configuring project ${fullName(project)} as a library")
         }
     }
 
@@ -208,7 +211,7 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureDirs(Project project){
-        log.info("Configuring Thrive resources directory, adding it to main source set")
+        log.info("Configuring Thrive resources directory, adding it to main source set in project ${fullName(project)}")
         project.ext {
             thriveDir = thriveDir
             thriveResourcesDir = thriveResourcesDir
@@ -241,26 +244,35 @@ class ThrivePlugin implements Plugin<Project> {
         project.dependencies {
             //fixme these configs may not exist!
             if (extension.libraries.addLombok.get()) {
-                log.info("Adding Lombok dependencies for ${project.name}")
+                log.info("Adding Lombok dependencies for ${fullName(project)}")
                 compileOnly('org.projectlombok:lombok')
                 annotationProcessor('org.projectlombok:lombok')
             }
 
             if (extension.libraries.addThriveCommon.get()) {
-                log.info("Adding thrive-common dependency for ${project.name}")
+                log.info("Adding thrive-common dependency for ${fullName(project)}")
                 implementation "com.github.thrive-framework.thrive:thrive-common"
             }
         }
     }
 
     private void configureProjectTasks(Project project){
-        log.info("Creating 'writeVersion' task")
+        log.info("Creating 'writeVersion' task in project ${fullName(project)}")
         //todo group, description
+
         project.tasks.create("writeVersion", EchoTask) {
             content = "${project.version}"
             target = new File(thriveMetadataDir, "version.txt")
         }
-        //dump capabilities; dependency for processResources
+
+        log.info("Creating 'writeCapabilities' task in project ${fullName(project)}")
+        project.tasks.create("writeCapabilities", WriteCapabilitiesTask) {
+            capabilities = extension.capabilities
+            outputFile = new File(thriveResourcesDir, "META-INF/capabilities.properties")
+            comment = "Created by ${fullName(project)}:writeCapabilities on behalf of Thrive"
+        }
+
+        project.processResources.dependsOn project.writeCapabilities
     }
 
     private void configureDockerTasks(Project project){
