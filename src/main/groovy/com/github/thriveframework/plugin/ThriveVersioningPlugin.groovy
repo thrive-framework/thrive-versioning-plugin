@@ -63,7 +63,6 @@ class ThriveVersioningPlugin implements Plugin<Project> {
                 }
                 onBranch(~semverRegex) {
                     def candidate = matches[1]
-                    //todo this fixates x.x.0 versions; check whether major and minor are the same and patch is bigger from tagged instead
                     def successors = getSuccessors(versioningContext.lastVersion)
                     log.debug("Acceptable version successors: $successors")
                     assert successors.contains("$candidate"), "Current development branch should be one of ${successors}, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
