@@ -1,53 +1,55 @@
 package com.github.thriveframework.plugin.extension
 
-import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
-import org.gradle.api.Project
+import com.github.thriveframework.plugin.utils.Defaults
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 
 import javax.inject.Inject
 
-@Slf4j
+//maybe "dependencies" can work somehow?
 class Libraries {
     final Property<Boolean> applyManagementPlugin
     final Property<Boolean> useThriveBom
+    final Property<String> bomVersion
 
     final Property<Boolean> addLombok
     final Property<Boolean> addThriveCommon
 
     @Inject
-    Libraries(Project project) {
-        applyManagementPlugin = project.objects.property(Boolean)
-        useThriveBom = project.objects.property(Boolean)
-        addLombok = project.objects.property(Boolean)
-        addThriveCommon = project.objects.property(Boolean)
+    Libraries(ObjectFactory objects) {
+        applyManagementPlugin = objects.property(Boolean)
+        useThriveBom = objects.property(Boolean)
+        bomVersion = objects.property(String)
+        addLombok = objects.property(Boolean)
+        addThriveCommon = objects.property(Boolean)
         initDefaults()
     }
 
     private void initDefaults(){
-        applyManagementPlugin.set true
-        useThriveBom.set true
-        addLombok.set true
-        addThriveCommon.set true
+        manage()
+        thriveBom(Defaults.bomVersion)
+        lombok()
+        thriveCommon()
+    }
+
+    void thriveBom(String version){
+        thriveBom(true)
+        bomVersion.set version
     }
 
     void thriveBom(boolean use = true){
-        log.info("Setting useThriveBom to $use")
         useThriveBom.set use
     }
 
     void manage(boolean doIt = true){
-        log.info("Setting applyManagementPlugin to $doIt")
         applyManagementPlugin.set doIt
     }
 
     void lombok(boolean use = true){
-        log.info("Setting addLombok to $use")
         addLombok.set use
     }
 
     void thriveCommon(boolean use = true){
-        log.info("Setting addThriveCommon to $use")
         addThriveCommon.set use
     }
 }

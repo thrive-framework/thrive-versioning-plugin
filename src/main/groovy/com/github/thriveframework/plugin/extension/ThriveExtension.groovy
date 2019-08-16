@@ -1,13 +1,12 @@
 package com.github.thriveframework.plugin.extension
 
-import groovy.util.logging.Slf4j
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 
-@Slf4j
 class ThriveExtension {
     final Capabilities capabilities
     final Libraries libraries
+    final Dockerfile dockerfile
 
     final Property<String> mainClassName
 
@@ -16,8 +15,9 @@ class ThriveExtension {
     final Property<Boolean> isRunnableProject
 
     ThriveExtension(Project project){
-        capabilities = project.objects.newInstance(Capabilities, project)
-        libraries = project.objects.newInstance(Libraries, project)
+        capabilities = project.objects.newInstance(Capabilities)
+        libraries = project.objects.newInstance(Libraries)
+        dockerfile = project.objects.newInstance(Dockerfile, project)
 
         mainClassName = project.objects.property(String)
 
@@ -27,16 +27,16 @@ class ThriveExtension {
     }
 
     private void initDefaults(){
-        gitBasedVersioning(true)
-        service(true)
+        gitBasedVersioning()
+        service()
     }
 
     void service(boolean is = true){
         isRunnableProject.set is
     }
 
-    void library(){
-        service(false)
+    void library(boolean is = true){
+        service(!is)
     }
 
     void gitBasedVersioning(boolean use = true){
@@ -49,5 +49,9 @@ class ThriveExtension {
 
     void capabilities(Closure c){
         this.capabilities.with c
+    }
+
+    void dockerfile(Closure c){
+        this.dockerfile.with c
     }
 }

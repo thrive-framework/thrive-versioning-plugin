@@ -12,16 +12,15 @@ import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
 @CacheableTask
-class EchoTask extends DefaultTask {
+class Echo extends DefaultTask {
     @Input
-    final Property<String> content
+    Property<String> content
 
     @OutputFile
     final RegularFileProperty target
 
-    //fixme I should pass ObjectFactory instead  - everywhere
     @Inject
-    EchoTask(ObjectFactory objects) {
+    Echo(ObjectFactory objects) {
         content = objects.property(String)
         target = objects.fileProperty()
     }

@@ -1,8 +1,10 @@
 package com.github.thriveframework.plugin
 
 import com.github.thriveframework.plugin.extension.ThriveExtension
-import com.github.thriveframework.plugin.task.EchoTask
-import com.github.thriveframework.plugin.task.WriteCapabilitiesTask
+import com.github.thriveframework.plugin.task.Echo
+import com.github.thriveframework.plugin.task.WriteCapabilities
+import com.github.thriveframework.plugin.task.WriteDockerfile
+import com.github.thriveframework.plugin.utils.ThriveDirectories
 import com.gorylenko.GitPropertiesPlugin
 import groovy.util.logging.Slf4j
 import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
@@ -23,18 +25,12 @@ import static com.github.thriveframework.plugin.utils.Projects.fullName
 class ThrivePlugin implements Plugin<Project> {
 
     private ThriveExtension extension
-    //todo move to ThriveFiles
-    private File thriveDir
-    private File thriveResourcesDir
-    private File thriveMetadataDir
+    private ThriveDirectories thriveDirectories
 
     @Override
     void apply(Project target) {
+        thriveDirectories = new ThriveDirectories(target)
         verifyGradleVersion()
-
-        thriveDir = new File(target.buildDir, "thrive")
-        thriveResourcesDir = new File(thriveDir, "resources")
-        thriveMetadataDir = new File(thriveDir, "metadata")
 
         configureExtensions(target)
 
@@ -202,8 +198,19 @@ class ThrivePlugin implements Plugin<Project> {
             project.bootRun {
                 systemProperty "spring.profiles.active", "local"
             }
+
+            project.ext {
+                dockerized = true
+                service = true
+                library = false
+            }
         } else {
             log.info("Configuring project ${fullName(project)} as a library")
+            project.ext {
+                dockerized = false
+                service = false
+                library = true
+            }
         }
     }
 
@@ -214,14 +221,13 @@ class ThrivePlugin implements Plugin<Project> {
     private void configureDirs(Project project){
         log.info("Configuring Thrive resources directory, adding it to main source set in project ${fullName(project)}")
         project.ext {
-            thriveDir = thriveDir
-            thriveResourcesDir = thriveResourcesDir
+            thriveDirectories = thriveDirectories
         }
 
         project.sourceSets {
             main {
                 resources {
-                    srcDir thriveResourcesDir
+                    srcDir thriveDirectories.resources
                 }
             }
         }
@@ -233,11 +239,11 @@ class ThrivePlugin implements Plugin<Project> {
         }
 
         if (extension.libraries.useThriveBom.get()) {
-            log.info("Using Thrive BOM with version 0.3.0-SNAPSHOT")
+            def version = extension.libraries.bomVersion.get()
+            log.info("Using Thrive BOM with version $version")
             project.dependencyManagement {
                 imports {
-                    //todo: where to take version from? extension, I suppose, with default in plugin properties
-                    mavenBom "com.github.thrive-framework:thrive-bom:0.3.0-SNAPSHOT"
+                    mavenBom "com.github.thrive-framework:thrive-bom:${version}"
                 }
             }
         }
@@ -258,30 +264,28 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureProjectTasks(Project project){
-        log.info("Creating 'writeVersion' task in project ${fullName(project)}")
-        //todo group, description
-
         def group = "Thrive (common)"
 
+        log.info("Creating 'writeVersion' task in project ${fullName(project)}")
         project.tasks.create(
             name: "writeVersion",
-            type: EchoTask,
+            type: Echo,
             description: "Writes project version to <buildDir>/thrive/metadata/version.txt (useful for build automation)",
             group: group
         ) {
             content = "${project.version}"
-            target = new File(thriveMetadataDir, "version.txt")
+            target = new File(thriveDirectories.metadata, "version.txt")
         }
 
         log.info("Creating 'writeCapabilities' task in project ${fullName(project)}")
         project.tasks.create(
             name: "writeCapabilities",
-            type: WriteCapabilitiesTask,
+            type: WriteCapabilities,
             description: "Writes properties describing Thrive capabilities to appropriate place",
             group: group
         ) {
             capabilities = extension.capabilities
-            outputFile = new File(thriveResourcesDir, "META-INF/capabilities.properties")
+            outputFile = new File(thriveDirectories.resources, "META-INF/capabilities.properties")
             comment = "Created by ${fullName(project)}:writeCapabilities on behalf of Thrive"
         }
 
@@ -289,7 +293,27 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureDockerTasks(Project project){
-        //dockerfile
+        def group = "Thrive (Docker)"
+        //todo log
+        def dockerfileLocation = new File(project.projectDir, "Dockerfile")
+        project.tasks.create(
+            name: "writeDockerfile",
+            type: WriteDockerfile,
+            group: group,
+            description: "Creates a Dockerfile suited for Thrive in main project directory (next to buildscript)"
+        ){
+            target = dockerfileLocation
+            dockerfile = extension.dockerfile
+        }
+
+        if (project.ext.dockerized)
+            project.build.dependsOn project.writeDockerfile
+        project.clean.doLast {
+            new File(project.projectDir, "Dockerfile").delete()
+        }
+
+        //docker build ?
+
         //docker compose todo add to extension
     }
 }

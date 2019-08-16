@@ -1,7 +1,6 @@
 package com.github.thriveframework.plugin.extension
 
-import groovy.transform.Canonical
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 
@@ -14,10 +13,10 @@ class Capabilities {
     //todo other/custom capabilities
 
     @Inject
-    Capabilities(Project project) {
-        this.hasApi = project.objects.property(Boolean)
-        this.hasSwagger = project.objects.property(Boolean)
-        this.websocketsEndpoints = project.objects.listProperty(String)
+    Capabilities(ObjectFactory objects) {
+        this.hasApi = objects.property(Boolean)
+        this.hasSwagger = objects.property(Boolean)
+        this.websocketsEndpoints = objects.listProperty(String)
         initDefaults()
     }
 

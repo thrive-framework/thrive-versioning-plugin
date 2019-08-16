@@ -14,13 +14,12 @@ import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @CacheableTask
 @Slf4j
-class WriteCapabilitiesTask extends WriteProperties {
+class WriteCapabilities extends WriteProperties {
     final Property<Capabilities> capabilities
 
     @Inject
-    WriteCapabilitiesTask(ObjectFactory objects){
+    WriteCapabilities(ObjectFactory objects){
         capabilities = objects.property(Capabilities)
-
     }
 
     @TaskAction
