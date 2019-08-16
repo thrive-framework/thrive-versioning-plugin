@@ -17,16 +17,22 @@ Add JitPack repo to buildscript dependencies and specify dependency on this plug
             }
         }
         dependencies {
-            classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0-SNAPSHOT"
+            classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0"
         }
     }
 
 > There are some reported incidents where JitPack isn't working properly if you don't specify repo name.
 > It will probably work without it, but when in doubt, use it.
 
-Use the plugin with old-style convention:
+Use the plugin with old style convention:
 
     apply plugin: "com.github.thrive-versioning"
+
+or with new style:
+
+    plugins {
+        id "com.github.thrive-versioning" version "0.1.0"
+    }
 
 ## Algorithm
 
@@ -53,11 +59,14 @@ Besides setting `project.version`, this plugin also adds a property (via `projec
 
 Use `master` as you've always used it.
 
-Make tag-based releases from master.
+Make tag-based releases from `master`.
+
+**Make sure that there is at least one tag! If not, there will be error. Simplest practice is to tag first commit with `0.0.0`.**
+> This is considered bug, but a minor one. Stay tuned, or submit a PR.
 
 Instead of using `dev`/`develop`/`development` branch, use branch name in SemVer format `a.b.c`. This name should be same as last release tag, but with minor part (`b`) incremented.
 
 Merge from `a.b.c` to master to create releases. Do not remove these branches, to allow using past versions with JitPack.
 
-> This project will be using itself in a moment. It has several commits in history before release of 0.1.0,
+> This project is using itself. It has several commits in history before release of 0.1.0,
 > because it was initially developed as part of [thrive-service-plugin](https://github.com/thrive-framework/thrive-service-plugin)
