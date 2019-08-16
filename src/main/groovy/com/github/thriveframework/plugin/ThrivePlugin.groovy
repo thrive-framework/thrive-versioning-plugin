@@ -89,6 +89,7 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureVersioning(Project project){
+        //todo extract to different plugin
         if (extension.useGitBasedVersioning.get()){
 
             applyPluginIfNeeded(project, GitVersionPlugin)
@@ -260,13 +261,25 @@ class ThrivePlugin implements Plugin<Project> {
         log.info("Creating 'writeVersion' task in project ${fullName(project)}")
         //todo group, description
 
-        project.tasks.create("writeVersion", EchoTask) {
+        def group = "Thrive (common)"
+
+        project.tasks.create(
+            name: "writeVersion",
+            type: EchoTask,
+            description: "Writes project version to <buildDir>/thrive/metadata/version.txt (useful for build automation)",
+            group: group
+        ) {
             content = "${project.version}"
             target = new File(thriveMetadataDir, "version.txt")
         }
 
         log.info("Creating 'writeCapabilities' task in project ${fullName(project)}")
-        project.tasks.create("writeCapabilities", WriteCapabilitiesTask) {
+        project.tasks.create(
+            name: "writeCapabilities",
+            type: WriteCapabilitiesTask,
+            description: "Writes properties describing Thrive capabilities to appropriate place",
+            group: group
+        ) {
             capabilities = extension.capabilities
             outputFile = new File(thriveResourcesDir, "META-INF/capabilities.properties")
             comment = "Created by ${fullName(project)}:writeCapabilities on behalf of Thrive"
