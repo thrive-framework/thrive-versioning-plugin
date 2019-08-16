@@ -4,6 +4,9 @@ import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.unbrokendome.gradle.plugins.gitversion.GitVersionPlugin
+import org.unbrokendome.gradle.plugins.gitversion.version.ImmutableSemVersionImpl
+import org.unbrokendome.gradle.plugins.gitversion.version.MutableSemVersion
+import org.unbrokendome.gradle.plugins.gitversion.version.SemVersion
 
 import static com.github.thriveframework.plugin.utils.Projects.fullName
 
@@ -41,6 +44,7 @@ class ThriveVersioningPlugin implements Plugin<Project> {
                     def commitsSinceTag = countCommitsSince tag
                     versioningContext.commitsSinceTag = commitsSinceTag
                     version = tag.matches[1]
+                    versioningContext.lastVersion = SemVersion.parse("$version")
                     if (commitsSinceTag > 0 || branchName != "master")
                         version.incrementMinor()
                 }
@@ -60,7 +64,10 @@ class ThriveVersioningPlugin implements Plugin<Project> {
                 onBranch(~semverRegex) {
                     def candidate = matches[1]
                     //todo this fixates x.x.0 versions; check whether major and minor are the same and patch is bigger from tagged instead
-                    assert "$version" == "$candidate", "Current development branch should be $version, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
+                    def successors = getSuccessors(versioningContext.lastVersion)
+                    log.debug("Acceptable version successors: $successors")
+                    assert successors.contains("$candidate"), "Current development branch should be one of ${successors}, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
+                    version = MutableSemVersion.parse(candidate)
                     version.prereleaseTag = "SNAPSHOT"
                     project.ext {
                         projectState = "SNAPSHOT"
@@ -84,5 +91,13 @@ class ThriveVersioningPlugin implements Plugin<Project> {
 
         log.info "Project \"${fullName(project)}\" version: ${project.version}"
         log.info "Project \"${fullName(project)}\" state:   ${project.projectState}"
+    }
+
+    private List<String> getSuccessors(SemVersion version){
+        [
+            "${new ImmutableSemVersionImpl(version.major+1, 0, 0, "", "")}",
+            "${new ImmutableSemVersionImpl(version.major, version.minor+1, 0, "", "")}",
+            "${new ImmutableSemVersionImpl(version.major, version.minor, version.patch+1, "", "")}",
+        ]
     }
 }
