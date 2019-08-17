@@ -40,11 +40,16 @@ class ThriveVersioningPlugin implements Plugin<Project> {
             rules {
                 before {
                     def tag = findLatestTag(~semverRegex, true)
-                    versioningContext.tag = tag
-                    def commitsSinceTag = countCommitsSince tag
+                    def taggedVersion
+                    if (tag)
+                        taggedVersion = tag.matches[1]
+                    else
+                        taggedVersion = "0.0.0"
+                    versioningContext.taggedVersion = taggedVersion
+                    def commitsSinceTag = tag ? countCommitsSince(tag) : 0
                     versioningContext.commitsSinceTag = commitsSinceTag
-                    version = tag.matches[1]
-                    versioningContext.lastVersion = SemVersion.parse("$version")
+                    version = SemVersion.parse(taggedVersion)
+                    versioningContext.lastVersion = SemVersion.parse(taggedVersion)
                     if (commitsSinceTag > 0 || branchName != "master")
                         version.incrementMinor()
                 }
@@ -65,7 +70,7 @@ class ThriveVersioningPlugin implements Plugin<Project> {
                     def candidate = matches[1]
                     def successors = getSuccessors(versioningContext.lastVersion)
                     log.debug("Acceptable version successors: $successors")
-                    assert successors.contains("$candidate"), "Current development branch should be one of ${successors}, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
+                    assert successors.contains("$candidate"), "Current development branch should be one of ${successors}, but is ${candidate}! (context: $versioningContext)"
                     version = MutableSemVersion.parse(candidate)
                     version.prereleaseTag = "SNAPSHOT"
                     project.ext {
