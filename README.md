@@ -35,7 +35,8 @@ Use the plugin with old style convention:
 
 The [rules](/src/main/groovy/com/github/thriveframework/plugin/ThriveVersioningPlugin.groovy)
 implement following algorithm for determining version:
-- find latest tag with name in format `x.y.z`
+- find latest tag with name in format `x.y.z`; if there is no tag of that form, use 
+`x.y.z = 0.0.0` 
 - calculate number of commits since that tag
 - if we're on master branch:
   - if the tag is on this commit (number of commits since the tag = 0), then use name of the tag (`x.y.z`) as version
@@ -90,9 +91,6 @@ should increment version by some part, while zeroing less important parts.
 Use `master` as you've always used it.
 
 Make tag-based releases from `master`.
-
-**Make sure that there is at least one tag! If not, there will be error. Simplest practice is to tag first commit with `0.0.0`.**
-> This is considered bug, but a minor one. Stay tuned, or submit a PR.
 
 Instead of using `dev`/`develop`/`development` branch, use branch name in SemVer format `a.b.c`.
 This name should be direct successor to last tagged release version (see above).
