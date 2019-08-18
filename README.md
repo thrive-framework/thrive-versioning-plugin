@@ -17,6 +17,7 @@ Add JitPack repo to buildscript dependencies and specify dependency on this plug
             }
         }
         dependencies {
+            //fixme as soon as 0.2.0 is out, update this
             classpath "com.github.thrive-framework:thrive-versioning-plugin:0.2.0-SNAPSHOT"
         }
     }
@@ -100,3 +101,19 @@ past versions with JitPack.
 
 > This project is using itself. It has several commits in history before release of 0.1.0,
 > because it was initially developed as part of [thrive-service-plugin](https://github.com/thrive-framework/thrive-service-plugin)
+
+
+------------------
+
+> Note to people browsing the repo history:
+>
+> If you're wondering why this repo has tag `0.0.0` - when this project started using itself, it
+> was version `0.1.0-SNAPSHOT`. `0.1.0` was released with a bug that required at least one tag.
+>
+> That bug was fixed in `0.2.0`, in one of the first `SNAPSHOT`s (see 
+> [this issue](https://github.com/thrive-framework/thrive-versioning-plugin/issues/2)).
+> 
+> To make earliest versions available with JitPack, I'm gonna leave the redundant tag in place.
+>
+> This doesn't (I repeat: `DOESN'T`) impact your versioning. If you're using `0.2.0-SNAPSHOT` and
+> further, it won't impact you. 

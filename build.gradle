@@ -6,6 +6,7 @@ buildscript {
         }
     }
     dependencies {
+        //fixme see README::Usage and its last lines; basically, from 0.2.0 use latest snapshot
         classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0"
     }
 }
