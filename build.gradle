@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.github.thrive-framework:thrive-versioning-plugin:0.2.0-SNAPSHOT"
+        classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0"
     }
 }
 
