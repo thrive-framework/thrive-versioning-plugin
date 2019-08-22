@@ -1,8 +1,11 @@
 package com.github.thriveframework.plugin
 
+import com.github.thriveframework.plugin.extension.ThriveVersioningExtension
 import groovy.util.logging.Slf4j
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.jvm.tasks.Jar
 import org.unbrokendome.gradle.plugins.gitversion.GitVersionPlugin
 import org.unbrokendome.gradle.plugins.gitversion.version.ImmutableSemVersionImpl
 import org.unbrokendome.gradle.plugins.gitversion.version.MutableSemVersion
@@ -12,21 +15,37 @@ import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @Slf4j
 class ThriveVersioningPlugin implements Plugin<Project> {
+    private ThriveVersioningExtension extension
+
     @Override
     void apply(Project project) {
+        configureExtension(project)
         configureVersioning(project)
+        project.afterEvaluate {
+            configurePublishing(project)
+        }
     }
 
 
-    private void applyPluginIfNeeded(Project project, Class plugin){
-        String pluginClassName = plugin.canonicalName
-        log.info("Trying to apply plugin with implementation $pluginClassName to project ${fullName(project)}")
+    private void applyPluginIfNeeded(Project project, plugin){
+        String nameToLog;
+        if (plugin instanceof Class)
+            nameToLog = plugin.canonicalName
+        else if (plugin instanceof String)
+            nameToLog = plugin
+        else
+            log.warn("$plugin is neither a class nor String, but rather ${plugin.class}; prepare for possible trouble")
+        log.info("Trying to apply plugin with implementation $nameToLog to project ${fullName(project)}")
         if (!project.plugins.findPlugin(plugin)) {
-            log.info("Applying $pluginClassName")
+            log.info("Applying $nameToLog")
             project.apply plugin: plugin
         } else {
-            log.info("$pluginClassName already applied")
+            log.info("$nameToLog already applied")
         }
+    }
+
+    private void configureExtension(Project project){
+        extension = project.extensions.create("thriveVersioning", ThriveVersioningExtension)
     }
 
     private void configureVersioning(Project project){
@@ -103,5 +122,54 @@ class ThriveVersioningPlugin implements Plugin<Project> {
             "${new ImmutableSemVersionImpl(version.major, version.minor+1, 0, "", "")}",
             "${new ImmutableSemVersionImpl(version.major, version.minor, version.patch+1, "", "")}",
         ]
+    }
+
+    private void configurePublishing(Project project){
+        if (extension.configurePublishing.get()){
+            applyPluginIfNeeded(project, 'maven-publish')
+
+            project.sourceCompatibility = 1.8
+            project.targetCompatibility = 1.8
+
+            project.tasks.create("sourcesJar", Jar) {
+                archiveClassifier = 'sources'
+                from project.sourceSets.main.allSource
+            }
+
+            project.tasks.create("javadocJar", Jar) {
+                archiveClassifier = 'javadoc'
+                from project.javadoc.destinationDir
+            }
+
+            project.publishing {
+                publications {
+                    main(MavenPublication) {
+                        from project.components.java
+
+                        artifact project.sourcesJar
+                        artifact project.javadocJar
+                    }
+                }
+            }
+
+            configureJitpack(project)
+        }
+    }
+
+    private void configureJitpack(Project project){
+        if (extension.configureForJitpack.get()){
+            project.publishMainPublicationToMavenLocal.dependsOn project.build
+
+            if (project.parent) {// this is not a root project
+                //change group so that it matches JitPack convention for multi-project
+                // builds
+                // see: https://jitpack.io/docs/BUILDING/#multi-module-projects
+                //todo does assumption rootProject.name == repository name hold?
+                project.group = "${project.rootProject.group}.${project.rootProject.name}"
+
+                //todo this solution won't take more than two levels into account
+                // can gradle even support multi-level project structure?
+            }
+        }
     }
 }

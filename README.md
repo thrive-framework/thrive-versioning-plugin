@@ -5,6 +5,9 @@ This trivial plugin encapsulates config for [org.unbroken-dome.gitversion](https
 It is specifically intended to be used with [JitPack](https://jitpack.io) in modified 
 [GitFlow](https://nvie.com/posts/a-successful-git-branching-model/) (see below) and [SemVer](https://semver.org/).
 
+Optionally, it can do some repetetive configuration for publishing and publishing to JitPack
+specifically.
+
 ## Usage
 
 Add JitPack repo to buildscript dependencies and specify dependency on this plugin:
@@ -32,7 +35,37 @@ Use the plugin with old style convention:
 > New style of applying plugins isn't working properly. Stay tuned, there's 
 > [a bug for that](https://github.com/thrive-framework/thrive-versioning-plugin/issues/1).
 
-## Algorithm
+## Configure and let configure
+
+This plugin does not only configure versioning rules, but also can configure `maven-publish` 
+module and ensure that the project is properly configured for JitPack.
+
+Let's start with this plugins extension (defaults are shown in the snippet):
+
+    thriveVersioning {
+        configurePublishing = true
+        configureForJitpack = true //note that "pack" is lowercase
+    } 
+
+If `configurePublishing` is `true`, then:
+- apply `maven-publish` plugin (if not applied yet)
+- set source and target compatibility to 1.8
+- define `sourcesJar` task with classifier `sources`
+- define `javadocJar` task with classifier `javadoc`
+- configure `publishing` section by defining a publication (named `main`) that has compiled code, sources
+  and javadoc in scope
+
+Additionally, if `configureForJitpack` is `true` (as well as `configurePublishing`), then:
+- make `publishMainPublicationToMavenLocal` depend on `build` (because sometimes JitPack can complain about missing JARs)
+- for every non-root project change group to 
+  [JitPack convention](https://jitpack.io/docs/BUILDING/#multi-module-projects)
+  > There may be a bug for multi-project builds with deep nesting (anything deeper than root and subprojects below)
+  > but it is not confirmed yet;
+  > manually setting project name to something else than repo name may also cause a bug.
+  > If you encounter any of these, please submit them. I don't want to do that before confirming them, and I have other
+  > proiorities in scope of Thrive.
+
+## Algorithm for determining version
 
 The [rules](/src/main/groovy/com/github/thriveframework/plugin/ThriveVersioningPlugin.groovy)
 implement following algorithm for determining version:
