@@ -88,6 +88,13 @@ Besides setting `project.version`, this plugin also adds a property (via `projec
 
 ### Limitations
 
+> First of all, feature branches are not configured in a way that is aligned with JitPack.
+> That is intentional, but there is a
+>
+> TODO When using configureForJitpack, change the strategy for feature branches (if possible)
+>
+> Same issue may impact RC versions
+
 Algorithm presented above assumes that most basic increments happens on minor part of the version.
 
 This means that even if you work on major or patch version and merge to `master` without tagging,

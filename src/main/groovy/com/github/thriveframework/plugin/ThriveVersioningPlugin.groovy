@@ -126,6 +126,7 @@ class ThriveVersioningPlugin implements Plugin<Project> {
 
     private void configurePublishing(Project project){
         if (extension.configurePublishing.get()){
+            log.info("Configuring publishing")
             applyPluginIfNeeded(project, 'maven-publish')
 
             project.sourceCompatibility = 1.8
@@ -153,11 +154,14 @@ class ThriveVersioningPlugin implements Plugin<Project> {
             }
 
             configureJitpack(project)
+        } else {
+            log.info("Publishing nor JitPack not configured")
         }
     }
 
     private void configureJitpack(Project project){
         if (extension.configureForJitpack.get()){
+            log.info("Configuring JitPack")
             project.publishMainPublicationToMavenLocal.dependsOn project.build
 
             if (project.parent) {// this is not a root project
@@ -170,6 +174,8 @@ class ThriveVersioningPlugin implements Plugin<Project> {
                 //todo this solution won't take more than two levels into account
                 // can gradle even support multi-level project structure?
             }
+        } else {
+            log.info("JitPack not configured")
         }
     }
 }
