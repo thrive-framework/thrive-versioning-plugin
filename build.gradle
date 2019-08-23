@@ -6,7 +6,12 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.github.thrive-framework:thrive-versioning-plugin:0.2.0-SNAPSHOT"
+        //JitPack doesnt really work with self-dependencies; use the newest full release
+        // this could probably be fixed by providing jitpack.yml and aligning the buildscript
+        // to take the previous commit version, building, publishing to local maven,
+        // then rebuilding republishing with -SNAPSHOT version and mavenLocal buildscript
+        // repo enabled
+        classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0"
     }
 }
 
