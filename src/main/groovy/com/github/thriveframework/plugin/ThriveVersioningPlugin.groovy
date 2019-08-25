@@ -156,16 +156,17 @@ class ThriveVersioningPlugin implements Plugin<Project> {
             log.info("Configuring JitPack")
             project.publishMainPublicationToMavenLocal.dependsOn project.build
 
-            if (project.parent) {// this is not a root project
+            //todo this feature is broken https://github.com/thrive-framework/thrive-versioning-plugin/issues/7
+//            if (project.parent) {// this is not a root project
                 //change group so that it matches JitPack convention for multi-project
                 // builds
                 // see: https://jitpack.io/docs/BUILDING/#multi-module-projects
                 //todo does assumption rootProject.name == repository name hold?
-                project.group = "${project.rootProject.group}.${project.rootProject.name}"
+//                project.group = "${project.rootProject.group}.${project.rootProject.name}"
 
                 //todo this solution won't take more than two levels into account
                 // can gradle even support multi-level project structure?
-            }
+//            }
         } else {
             log.info("JitPack not configured")
         }
