@@ -27,10 +27,15 @@ apply plugin: "com.github.thrive-versioning"
 group = 'com.github.thrive-framework'
 
 repositories {
+    maven {
+        name "jitpack"
+        url "https://jitpack.io"
+    }
     gradlePluginPortal()
 }
 
 dependencies {
+    implementation "com.github.thrive-framework:thrive-plugin-common:0.1.0-SNAPSHOT"
     api "gradle.plugin.org.unbroken-dome.gradle-plugins:gradle-gitversion-plugin:0.10.0"
 }
 

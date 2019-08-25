@@ -11,6 +11,9 @@ import org.unbrokendome.gradle.plugins.gitversion.version.ImmutableSemVersionImp
 import org.unbrokendome.gradle.plugins.gitversion.version.MutableSemVersion
 import org.unbrokendome.gradle.plugins.gitversion.version.SemVersion
 
+import static com.github.thriveframework.plugin.task.VersionTasks.createPrintVersion
+import static com.github.thriveframework.plugin.task.VersionTasks.createWriteVersion
+import static com.github.thriveframework.plugin.utils.Projects.applyPlugin
 import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @Slf4j
@@ -21,35 +24,18 @@ class ThriveVersioningPlugin implements Plugin<Project> {
     void apply(Project project) {
         configureExtension(project)
         configureVersioning(project)
+        addVersionTasks(project)
         project.afterEvaluate {
             configurePublishing(project)
         }
     }
-
-
-    private void applyPluginIfNeeded(Project project, plugin){
-        String nameToLog;
-        if (plugin instanceof Class)
-            nameToLog = plugin.canonicalName
-        else if (plugin instanceof String)
-            nameToLog = plugin
-        else
-            log.warn("$plugin is neither a class nor String, but rather ${plugin.class}; prepare for possible trouble")
-        log.info("Trying to apply plugin with implementation $nameToLog to project ${fullName(project)}")
-        if (!project.plugins.findPlugin(plugin)) {
-            log.info("Applying $nameToLog")
-            project.apply plugin: plugin
-        } else {
-            log.info("$nameToLog already applied")
-        }
-    }
-
+    
     private void configureExtension(Project project){
         extension = project.extensions.create("thriveVersioning", ThriveVersioningExtension)
     }
 
     private void configureVersioning(Project project){
-        applyPluginIfNeeded(project, GitVersionPlugin)
+        applyPlugin(project, GitVersionPlugin)
 
         def semverRegex = /(\d+[.]\d+[.]\d+)/
         def versioningContext = [fullyDetermined: false]
@@ -111,9 +97,6 @@ class ThriveVersioningPlugin implements Plugin<Project> {
         }
 
         project.version = project.gitVersion.determineVersion()
-
-        log.info "Project \"${fullName(project)}\" version: ${project.version}"
-        log.info "Project \"${fullName(project)}\" state:   ${project.projectState}"
     }
 
     private List<String> getSuccessors(SemVersion version){
@@ -124,10 +107,19 @@ class ThriveVersioningPlugin implements Plugin<Project> {
         ]
     }
 
+    private void addVersionTasks(Project project){
+        createWriteVersion(project)
+        def versionPrefix = "Project ${fullName(project)} version: "
+        def statePrefix =   "Project ${fullName(project)} state:   "
+        createPrintVersion(project, versionPrefix).doLast {
+            println "$statePrefix ${project.projectState}"
+        }
+    }
+
     private void configurePublishing(Project project){
         if (extension.configurePublishing.get()){
             log.info("Configuring publishing")
-            applyPluginIfNeeded(project, 'maven-publish')
+            applyPlugin(project, 'maven-publish')
 
             project.sourceCompatibility = 1.8
             project.targetCompatibility = 1.8
