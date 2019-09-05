@@ -11,10 +11,10 @@ import org.unbrokendome.gradle.plugins.gitversion.version.ImmutableSemVersionImp
 import org.unbrokendome.gradle.plugins.gitversion.version.MutableSemVersion
 import org.unbrokendome.gradle.plugins.gitversion.version.SemVersion
 
-import static com.github.thriveframework.plugin.task.VersionTasks.createPrintVersion
-import static com.github.thriveframework.plugin.task.VersionTasks.createWriteVersion
-import static com.github.thriveframework.plugin.utils.Projects.applyPlugin
-import static com.github.thriveframework.plugin.utils.Projects.fullName
+import static com.github.thriveframework.utils.plugin.Projects.applyPlugin
+import static com.github.thriveframework.utils.plugin.Projects.fullName
+import static com.github.thriveframework.utils.plugin.task.VersionTasks.createPrintVersion
+import static com.github.thriveframework.utils.plugin.task.VersionTasks.createWriteVersion
 
 @Slf4j
 class ThriveVersioningPlugin implements Plugin<Project> {

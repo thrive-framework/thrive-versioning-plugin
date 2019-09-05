@@ -63,7 +63,9 @@ Additionally, if `configureForJitpack` is `true` (as well as `configurePublishin
   > but it is not confirmed yet;
   > manually setting project name to something else than repo name may also cause a bug.
   > If you encounter any of these, please submit them. I don't want to do that before confirming them, and I have other
-  > proiorities in scope of Thrive.
+  > priorities in scope of Thrive.
+  >
+  > Welp, there is a bug, but even bigger than I thought. See #7
 
 ## Algorithm for determining version
 
